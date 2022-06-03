@@ -2,7 +2,7 @@
 #include "pairing_3.h"
 #include <ctime>
 #include <time.h>
-#define TEST_TIME 30
+#define TEST_TIME 1
 int correct_test()
 {
     PFC pfc(AES_SECURITY);
@@ -129,7 +129,10 @@ int correct_test()
     USER_PURCH_INFO purch_info;
 
     ///user send proof
-    ret = E_Tickets.ObtainTick_Send(pp,seller_key.pub_key,user_key,cred_u,attr,VP_u,tick_pri,purch_info);
+    Big nounce;
+    pfc.random(nounce);
+    //ret = E_Tickets.IssuerVerify(pp,seller_key,  cred_s,pok2,nounce);
+    ret = E_Tickets.ObtainTick_Send(pp,seller_key.pub_key,cred_s, pok2, nounce,user_key,cred_u,attr,VP_u,tick_pri,purch_info);
     if(ret != 0)
     {
         printf("E_Tickets.ObtainTick_Send Erro ret =%d\n",ret);
@@ -138,7 +141,7 @@ int correct_test()
     else
         printf("E_Tickets.ObtainTick_Send pass\n");
     /// seller verify and issue ticket
-    ret = E_Tickets.IssueTick(pp,purch_info,seller_key,tick);
+    ret = E_Tickets.IssueTick(pp,purch_info,seller_key,tick,nounce);
     if(ret != 0)
     {
         printf("E_Tickets.IssueTick Erro ret =%d\n",ret);
@@ -159,7 +162,8 @@ int correct_test()
     USER_SHOW_INFO show_info1,show_info2;
     BLAME_INFO blame_info1,blame_info2;
     ///user send proof
-    ret=E_Tickets.ShowTick(seller_key.pub_key,tick_pri,tick,user_key,show_info1);
+    pfc.random(nounce);
+    ret=E_Tickets.ShowTick(seller_key.pub_key,tick_pri,tick,user_key,show_info1,nounce);
     if(ret != 0)
     {
         printf("E_Tickets.ShowTick1 Erro ret =%d\n",ret);
@@ -168,7 +172,7 @@ int correct_test()
     else
         printf("E_Tickets.ShowTick1 pass\n");
     ///verifier verify
-    ret=E_Tickets.ValidTick(seller_key.pub_key,show_info1,blame_info1);
+    ret=E_Tickets.ValidTick(seller_key.pub_key,show_info1,blame_info1,nounce);
     if(ret != 0)
     {
         printf("E_Tickets.ValidTick1 Erro ret =%d\n",ret);
@@ -178,7 +182,8 @@ int correct_test()
         printf("E_Tickets.ValidTick1 pass\n");
 
     ///user send proof
-    ret=E_Tickets.ShowTick(seller_key.pub_key,tick_pri,tick,user_key,show_info2);
+    pfc.random(nounce);
+    ret=E_Tickets.ShowTick(seller_key.pub_key,tick_pri,tick,user_key,show_info2,nounce);
     if(ret != 0)
     {
         printf("E_Tickets.ShowTick2 Erro ret =%d\n",ret);
@@ -187,7 +192,7 @@ int correct_test()
     else
         printf("E_Tickets.ShowTick2 pass\n");
     ///verifier verify
-    ret=E_Tickets.ValidTick(seller_key.pub_key,show_info2,blame_info2);
+    ret=E_Tickets.ValidTick(seller_key.pub_key,show_info2,blame_info2,nounce);
     if(ret != 0)
     {
         printf("E_Tickets.ValidTick2 Erro ret =%d\n",ret);
@@ -402,12 +407,14 @@ int speed_test()
     TICK_PRI tick_pri;
     TICKET tick;
     USER_PURCH_INFO purch_info;
-
+    Big nounce;
+    pfc.random(nounce);
     ///user send proof
     start=clock();
     for(i=0;i<TEST_TIME;i++)
     {
-        ret = E_Tickets.ObtainTick_Send(pp,seller_key.pub_key,user_key,cred_u,attr,VP_u,tick_pri,purch_info);
+        ret = E_Tickets.ObtainTick_Send(pp,seller_key.pub_key,cred_s, pok2, nounce,user_key,cred_u,attr,VP_u,tick_pri,purch_info);
+
         if(ret != 0)
         {
             printf("E_Tickets.ObtainTick_Send Erro ret =%d\n",ret);
@@ -421,7 +428,7 @@ int speed_test()
     start=clock();
     for(i=0;i<TEST_TIME;i++)
     {
-        ret = E_Tickets.IssueTick(pp,purch_info,seller_key,tick);
+        ret = E_Tickets.IssueTick(pp,purch_info,seller_key,tick,nounce);
         if(ret != 0)
         {
             printf("E_Tickets.IssueTick Erro ret =%d\n",ret);
@@ -452,7 +459,7 @@ int speed_test()
     start=clock();
     for(i=0;i<TEST_TIME;i++)
     {
-        ret=E_Tickets.ShowTick(seller_key.pub_key,tick_pri,tick,user_key,show_info1);
+        ret=E_Tickets.ShowTick(seller_key.pub_key,tick_pri,tick,user_key,show_info1,nounce);
         if(ret != 0)
         {
             printf("E_Tickets.ShowTick1 Erro ret =%d\n",ret);
@@ -466,7 +473,7 @@ int speed_test()
     start=clock();
     for(i=0;i<TEST_TIME;i++)
     {
-        ret=E_Tickets.ValidTick(seller_key.pub_key,show_info1,blame_info1);
+        ret=E_Tickets.ValidTick(seller_key.pub_key,show_info1,blame_info1,nounce);
         if(ret != 0)
         {
             printf("E_Tickets.ValidTick1 Erro ret =%d\n",ret);
@@ -481,7 +488,7 @@ int speed_test()
     start=clock();
     for(i=0;i<TEST_TIME;i++)
     {
-        ret=E_Tickets.ShowTick(seller_key.pub_key,tick_pri,tick,user_key,show_info2);
+        ret=E_Tickets.ShowTick(seller_key.pub_key,tick_pri,tick,user_key,show_info2,nounce);
         if(ret != 0)
         {
             printf("E_Tickets.ShowTick2 Erro ret =%d\n",ret);
@@ -543,7 +550,7 @@ int speed_test()
 int main()
 {
 
-/*
+
     int ret =correct_test();
     if(ret != 0)
     {
@@ -556,8 +563,8 @@ int main()
         printf("*******************************************\n");
         printf("E_Tickets correct_test pass\n");
     }
-*/
-    int ret =speed_test();
+
+    ret =speed_test();
     if(ret != 0)
     {
         printf("E_Tickets speed_test Erro ret =%d\n",ret);

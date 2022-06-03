@@ -18,10 +18,10 @@ struct URS_PRI_KEY_CA
 };
 struct URS_PUB_KEY_CA
 {
-    G2 X_;
+    G1 X_;
     G1 Y[ATTRIBUTES_NUM];
     G2 Y_[ATTRIBUTES_NUM];
-    G2 Z_[ATTRIBUTES_NUM][ATTRIBUTES_NUM];
+    G1 Z_[ATTRIBUTES_NUM][ATTRIBUTES_NUM];
 };
 struct SPS_PRI_KEY_CA
 {
@@ -30,9 +30,9 @@ struct SPS_PRI_KEY_CA
 };
 struct SPS_PUB_KEY_CA
 {
-    G2 h_;
-    G1 D;
-    G1 E[4];
+    G1 h_;
+    G2 D;
+    G2 E[4];
 
 };
 struct PP
@@ -50,7 +50,7 @@ struct MSK
 struct USER_KEY
 {
     Big usk;
-    G1  upk;
+    G2  upk;
 };
 //seller key
 struct SELLER_PRI_KEY
@@ -61,10 +61,10 @@ struct SELLER_PRI_KEY
 };
 struct SELLER_PUB_KEY
 {
-    G2 X_;
+    G1 X_;
     G1 Y[4];
     G2 Y_[4];
-    G2 Z02_,Z12_,Z32_;
+    G1 Z02_,Z12_,Z32_;
 
 };
 struct SELLER_KEY
@@ -81,8 +81,8 @@ struct POK1
 //Cred_u
 struct CRED_U
 {
-    G1 sigma1;
-    G1 sigma2;
+    G2 sigma1;
+    G2 sigma2;
 };
 
 //POK1
@@ -94,8 +94,8 @@ struct POK2
 //Cred_s
 struct CRED_S
 {
-    G1 A;
-    G2 B_,C_;
+    G2 A;
+    G1 B_,C_;
 };
 //Tick
 struct TICK_PRI
@@ -104,7 +104,7 @@ struct TICK_PRI
 };
 struct TICKET
 {
-    G1 T1,T2;
+    G2 T1,T2;
     Big dsid_s,VP_t;
 };
 //POK3
@@ -117,8 +117,8 @@ struct POK3
 //User derive URS
 struct DERIVE_CRED
 {
-   G1 sigma1,sigma2;
-   G2 sigma1_,sigma2_;
+   G2 sigma1,sigma2;
+   G1 sigma1_,sigma2_;
    GT sigma3;
    Big s;
 };
@@ -135,7 +135,7 @@ struct DISCLOSE_ATTR
 struct USER_PURCH_INFO
 {
     DERIVE_CRED derive;
-    G1 Psu;
+    G2 Psu;
     POK3 pok3;
     DISCLOSE_ATTR diclose;
 };
@@ -147,8 +147,8 @@ struct POK4
 };
 struct DERIVE_TICK
 {
-    G1 T1,T2;
-    G2 T1_,T2_;
+    G2 T1,T2;
+    G1 T1_,T2_;
     GT T3;
     Big s;
 
@@ -183,7 +183,7 @@ public:
     //ObtainCred_u-----IssueCred_u process
     int GenerateAttributes(USER_ATTR &attr);//The first is the usk (init 0), the last is the VT_u(init 0), and the others are replaced by random numbers
     int ObtainCred_u_Send(USER_KEY &user_key,POK1 &pok1);
-    int IssueCred_u(G1 &upk, USER_ATTR &attr, POK1 &pok1, MSK &msk, Big &VP_u, CRED_U &cred_u);
+    int IssueCred_u(G2 &upk, USER_ATTR &attr, POK1 &pok1, MSK &msk, Big &VP_u, CRED_U &cred_u);
     int ObtainCred_u_Receive(PP &pp, CRED_U &cred_u, Big &usk, USER_ATTR &attr, Big &VP_u);
 
     //obtain Creds----IssueCreds process
@@ -193,13 +193,14 @@ public:
     int VerifySellerCred_s(SELLER_PUB_KEY &seller_pub, CRED_S &cred_s, PP &pp);
 
     //ObtainTicket---IssueTicket process
-    int ObtainTick_Send(PP &pp,SELLER_PUB_KEY &sell_pub,USER_KEY &user_key,CRED_U &cred_u, USER_ATTR &attr,Big &VP_u,TICK_PRI &tick_pri,USER_PURCH_INFO &purch_info);
-    int IssueTick(PP &pp,USER_PURCH_INFO &purch_info,SELLER_KEY &seller_key,TICKET &tick);
+    int IssuerVerify(PP &pp, SELLER_KEY &seller_key, CRED_S &cred_s, POK2 &pok2, Big &nounce);
+    int ObtainTick_Send(PP &pp, SELLER_PUB_KEY &seller_pub, CRED_S &cred_s, POK2 &pok2, Big &nounce, USER_KEY &user_key, CRED_U &cred_u, USER_ATTR &attr, Big &VP_u, TICK_PRI &tick_pri, USER_PURCH_INFO &purch_info);
+    int IssueTick(PP &pp, USER_PURCH_INFO &purch_info, SELLER_KEY &seller_key, TICKET &tick, Big &nounce);
     int ObtainTick_Receive(SELLER_PUB_KEY &sell_pub,USER_KEY &user_key,TICK_PRI &tick_pri,TICKET &tick);
 
     //ShowTickets----ValidTickets process
-    int ShowTick(SELLER_PUB_KEY &sell_pub,TICK_PRI &tick_pri,TICKET &tick, USER_KEY &user_key,USER_SHOW_INFO &show_info);
-    int ValidTick(SELLER_PUB_KEY &sell_pub, USER_SHOW_INFO &show_info,BLAME_INFO &blame_info);
+    int ShowTick(SELLER_PUB_KEY &sell_pub,TICK_PRI &tick_pri,TICKET &tick, USER_KEY &user_key,USER_SHOW_INFO &show_info,Big &nounce);
+    int ValidTick(SELLER_PUB_KEY &sell_pub, USER_SHOW_INFO &show_info,BLAME_INFO &blame_info,Big &nounce);
 
     //Trace Double-spending
     int TraceDS(BLAME_INFO &blame_info1, BLAME_INFO &blame_info2, USER_KEY &user_key);

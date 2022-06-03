@@ -765,7 +765,7 @@ PFC::PFC(int s, csprng *rng)
 		exit(0);
 	}
     if (s==128)	mod_bits=512;//256;
-	if (s==192) mod_bits=768;
+    if (s==192) mod_bits=1536;//768
 
 	if (mod_bits%MIRACL==0)
 		words=(mod_bits/MIRACL);
